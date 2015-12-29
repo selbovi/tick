@@ -1,32 +1,26 @@
 package ticks
 
-import groovy.io.FileType
 import utils.TickUtil
+import utils._
 
-import java.time.Duration
 import java.time.LocalDateTime
-import java.time.ZoneId
 import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
 
 /**
  * Created by SMufazzalov on 25.12.2015.
  */
 class Tick {
-    def moscowZone = ZoneId.of("Europe/Moscow")
-    def estZone = ZoneId.of(ZoneId.SHORT_IDS.get("EST"))
-    def serverZone = ZoneId.of("GMT+1")
 
     ZonedDateTime time
     double bid
     double ask
     int volume
 
-    Tick(String line){
+    Tick(String line) {
         def arr = line.tokenize(',')
 
-        def ldt = LocalDateTime.parse(arr[0], DateTimeFormatter.ofPattern("uuuuMMdd HHmmssSSS"))
-        time = ZonedDateTime.of(ldt, estZone)
+        def ldt = LocalDateTime.parse(arr[0], _.TICK_DATE_TIME_FORMAT)
+        time = ZonedDateTime.of(ldt, _.estZone)
         bid = Double.parseDouble(arr[1])
         ask = Double.parseDouble(arr[2])
         volume = Double.parseDouble(arr[3])
@@ -37,11 +31,11 @@ class Tick {
     }
 
     def server() {
-        """${ time.withZoneSameInstant(serverZone).toLocalDateTime()} in Server"""
+        """${time.withZoneSameInstant(_.serverZone).toLocalDateTime()} in Server"""
     }
 
     def moscow() {
-        """${ time.withZoneSameInstant(moscowZone).toLocalDateTime()} in MSC"""
+        """${time.withZoneSameInstant(_.moscowZone).toLocalDateTime()} in MSC"""
     }
 
     def est() {

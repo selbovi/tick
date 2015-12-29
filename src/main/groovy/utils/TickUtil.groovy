@@ -2,6 +2,7 @@ package utils
 
 import groovy.io.FileType
 import ticks.Tick
+import candle.Candle
 
 import java.time.DayOfWeek
 import java.time.Duration
@@ -13,15 +14,24 @@ class TickUtil {
 
     def static YEAR_2015_TICKS = '../2015/ticks'
     def static YEAR_2015_CANDLES_ASCII_EURUSD_M1 = '../2015/candles/HISTDATA_COM_ASCII_EURUSD_M1'
-    def static TEST_DIR = '../test'
+    def static TEST_TICK_DIR = '../test/tick'
+    def static TEST_CANDLE_DIR = '../test/candle'
     def static dir2015 = new File(Tick.getResource(YEAR_2015_TICKS).path)
-    def static dirTest = new File(Tick.getResource(TEST_DIR).path)
+    def static dirTestTick = new File(Tick.getResource(TEST_TICK_DIR).path)
+    def static DIR_TEST_CANDLES = new File(Tick.getResource(TEST_CANDLE_DIR).path)
 
-    def static cmp = new Comparator<Tick>() {
+    def static cmpTick = new Comparator<Tick>() {
 
         @Override
         int compare(Tick o1, Tick o2) {
-            return o1.time.compareTo(o2.time)
+            o1.time.compareTo(o2.time)
+        }
+    }
+
+    def static cmpCandle = new Comparator<Candle>() {
+        @Override
+        int compare(Candle o1, Candle o2) {
+            o1.time.compareTo(o2.time)
         }
     }
 
@@ -38,7 +48,7 @@ class TickUtil {
         }
 
         println "unsorted list for " + YEAR_2015_TICKS + " contains total " + ticks.size + "ticks"
-        ticks.sort(cmp)
+        ticks.sort(cmpTick)
 
         ticks
     }
@@ -50,7 +60,17 @@ class TickUtil {
             ticks << new Tick(line)
         }
         println "file " + file.name + " contains " + ticks.size() + " ticks"
-        ticks.toSorted(cmp)
+        ticks.toSorted(cmpTick)
+    }
+
+    static List<Candle> getCandlesFromFile(File file) {
+        LinkedList cadles = []
+        println "parsing file - " + file.name
+        file.eachLine { line ->
+            cadles << new Candle(line)
+        }
+        println """file ${file.name} contains ${cadles.size()} candles"""
+        cadles.toSorted(cmpCandle)
     }
 
     static List<File> getCsvFiles(File dir) {
