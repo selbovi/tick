@@ -13,12 +13,10 @@ import java.time.Duration
 class TickUtil {
 
     def static YEAR_2015_TICKS = '../2015/ticks'
-    def static YEAR_2015_CANDLES_ASCII_EURUSD_M1 = '../2015/candles/HISTDATA_COM_ASCII_EURUSD_M1'
     def static TEST_TICK_DIR = '../test/tick'
-    def static TEST_CANDLE_DIR = '../test/candle'
+
     def static dir2015 = new File(Tick.getResource(YEAR_2015_TICKS).path)
     def static dirTestTick = new File(Tick.getResource(TEST_TICK_DIR).path)
-    def static DIR_TEST_CANDLES = new File(Tick.getResource(TEST_CANDLE_DIR).path)
 
     def static cmpTick = new Comparator<Tick>() {
 
@@ -28,16 +26,9 @@ class TickUtil {
         }
     }
 
-    def static cmpCandle = new Comparator<Candle>() {
-        @Override
-        int compare(Candle o1, Candle o2) {
-            o1.time.compareTo(o2.time)
-        }
-    }
-
     static List<Tick> getTicksFor2015() {
 
-        def csvFiles = getCsvFiles(dir2015)
+        def csvFiles = _.getCsvFiles(dir2015)
 
         println "files found " + csvFiles.size()
 
@@ -63,31 +54,10 @@ class TickUtil {
         ticks.toSorted(cmpTick)
     }
 
-    static List<Candle> getCandlesFromFile(File file) {
-        LinkedList cadles = []
-        println "parsing file - " + file.name
-        file.eachLine { line ->
-            cadles << new Candle(line)
-        }
-        println """file ${file.name} contains ${cadles.size()} candles"""
-        cadles.toSorted(cmpCandle)
-    }
-
-    static List<File> getCsvFiles(File dir) {
-        def csvFiles = []
-        dir.eachFileRecurse(FileType.ANY) { file ->
-            if (file.name.endsWith(".csv")) {
-                println file.name
-                csvFiles << file
-            }
-        }
-        csvFiles
-    }
-
     static void findGaps(File dir) {
         Map<String, List<Tick>> sundays = new HashMap<>()
         Map<String, List<Tick>> fridays = new HashMap<>()
-        getCsvFiles(dir).forEach {
+        _.getCsvFiles(dir).forEach {
             file ->
                 def tcs = getTicksFromFile(file)
                 tcs.forEach { t ->
@@ -107,39 +77,60 @@ class TickUtil {
                 }
         }
 
-        def sds  = []
+        def sds = []
         sundays.forEach {
             stamp, list ->
                 def firstTick = list.first()
                 sds.add(firstTick)
         }
-        def fds  = []
+        def fds = []
         fridays.forEach {
             stamp, list ->
                 def lastTick = list.last()
                 fds.add(lastTick)
         }
 
-        Map <Tick, Tick> kv = new HashMap<>()
+        Map<Tick, Tick> kv = new HashMap<>()
         fds.forEach {
             f ->
                 sds.forEach {
                     s ->
                         if (Math.abs(Duration.between(s.time, f.time).toDays()) == 2) {
-                            kv.put(f,s)
+                            kv.put(f, s)
                             return true
                         }
                 }
         }
 
-        kv.entrySet().forEach { e->
-            println (e.key.bid.toString() + " " + e.value.bid.toString() + " pts " + Math.abs(e.key.bid - e.value.bid)*10_000)
+        kv.entrySet().forEach { e ->
+            println(e.key.bid.toString() + " " + e.value.bid.toString() + " pts " + Math.abs(e.key.bid - e.value.bid) * 10_000)
             println "Закрытие в " + e.key.moscow()
             println "Открытие в " + e.value.moscow()
-            println "Закрытие в " + e.key.est()
+           /* println "Закрытие в " + e.key.est()
             println "Открытие в " + e.value.est()
             println "Закрытие в " + e.key.server()
-            println "Открытие в " + e.value.server()
+            println "Открытие в " + e.value.server()*/
         }
+
+        _print(kv.entrySet(), 10)
+        _print(kv.entrySet(), 20)
+        _print(kv.entrySet(), 30)
+        _print(kv.entrySet(), 50)
+    }
+
+    def static _print(Set<Map.Entry<Tick, Tick>> set, int pts) {
+        println """всего ${set.size()} из них > ${pts}pts ${
+            def count = 0
+            set.each {
+                if (Math.abs(it.key.bid - it.value.bid)*10_000 >= pts){
+                    count++
+                }
+            }
+            count
+        }"""
+    }
+
+    public static void main(String[] args) {
+        findGaps(dir2015)
     }
 }
