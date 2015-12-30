@@ -1,7 +1,9 @@
 package candle
 
-import utils._
+import provider.parser.CandleParserInterface
 import utils.TickUtil
+import utils._
+
 import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
@@ -17,6 +19,7 @@ class Candle {
     double close
     int volume
 
+    @Deprecated
     Candle(String line) {
         def arr = line.tokenize(';')
 
@@ -27,6 +30,25 @@ class Candle {
         low = Double.parseDouble(arr[3])
         close = Double.parseDouble(arr[4])
         volume = Double.parseDouble(arr[5])
+    }
+
+    Candle(String line, CandleParserInterface parser) {
+        assert line != null
+        assert parser != null
+
+        time = parser.getTime(line)
+        open = parser.getOpen(line)
+        high = parser.getHigh(line)
+        low = parser.getLow(line)
+        close = parser.getClose(line)
+        volume = parser.getVolume(line)
+    }
+
+    def static COMPARATOR = new Comparator<Candle>() {
+        @Override
+        int compare(Candle o1, Candle o2) {
+            o1.time.compareTo(o2.time)
+        }
     }
 
     public static void main(String[] args) {

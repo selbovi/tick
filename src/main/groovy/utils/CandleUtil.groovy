@@ -66,12 +66,6 @@ class CandleUtil {
             count
         }"""
     }
-    def static cmpCandle = new Comparator<Candle>() {
-        @Override
-        int compare(Candle o1, Candle o2) {
-            o1.time.compareTo(o2.time)
-        }
-    }
 
     static List<Candle> getCandlesFromFile(File file) {
         LinkedList cadles = []
@@ -80,7 +74,7 @@ class CandleUtil {
             cadles << new Candle(line)
         }
         println """file ${file.name} contains ${cadles.size()} candles"""
-        cadles.toSorted(cmpCandle)
+        cadles.toSorted(Candle.COMPARATOR)
     }
 
     static Map<LocalDate, List<Candle>> dateCandle(List<Candle> candles, DayOfWeek... filter) {
