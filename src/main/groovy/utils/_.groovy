@@ -1,7 +1,10 @@
 package utils
 
+import candle.Candle
 import groovy.io.FileType
 
+import java.time.DayOfWeek
+import java.time.LocalDate
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -26,4 +29,16 @@ class _ {
         csvFiles
     }
 
+    static Map<LocalDate, List<Candle>> dateCandle(List<Candle> candles, DayOfWeek... filter) {
+        Map<LocalDate, List<Candle>> map = new HashMap<>()
+        candles.each {
+            if (filter.contains(it.time.dayOfWeek)) {
+                map.computeIfAbsent(it.time.toLocalDate(), {
+                    []
+                })
+                map.get(it.time.toLocalDate()).add(it)
+            }
+        }
+        map
+    }
 }

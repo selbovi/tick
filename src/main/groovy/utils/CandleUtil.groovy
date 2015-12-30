@@ -25,7 +25,7 @@ class CandleUtil {
             def fds = dateCandle(candles, DayOfWeek.FRIDAY)
 
             sds.entrySet().each {
-                sundays << it.value.last()
+                sundays << it.value.first()
             }
             fds.entrySet().each {
                 fridays << it.value.last()
